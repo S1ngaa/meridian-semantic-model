@@ -1,0 +1,54 @@
+/*
+    Currency conversion calculation group (requirement #4).
+    Group controller wants to switch local <-> USD, with sales using the
+    monthly-average rate and stock valuation using the month-end rate.
+
+    Calculation Group: "Currency View"
+    Precedence: 20 (apply AFTER Time Intelligence, so YTD/PY context is already
+    set before conversion — converting first then summing periods would use
+    the wrong day's rate for YTD-style sums)
+    Column: "Currency Selection"
+*/
+
+-- Calculation Item: "Local" (no conversion, base case)
+SELECTEDMEASURE ()
+
+-- Calculation Item: "USD (Monthly Avg Rate)" -- use for P&L / sales measures
+SUMX (
+    VALUES ( 'Dim Date'[CalendarMonth] ),
+    VAR MonthRate =
+        CALCULATE (
+            AVERAGE ( 'Fact ExchangeRate'[RateToUSD_MonthAvg] )
+        )
+    RETURN
+        SELECTEDMEASURE () * MonthRate
+)
+
+-- Calculation Item: "USD (Month-End Rate)" -- use for stock/balance-sheet measures
+VAR EndRate =
+    CALCULATE (
+        AVERAGE ( 'Fact ExchangeRate'[RateToUSD_EOD] ),
+        LASTDATE ( 'Dim Date'[Date] )
+    )
+RETURN
+    SELECTEDMEASURE () * EndRate
+
+/*
+    Why this needs per-month iteration for the average-rate item: a quarter or
+    year filter context covers multiple months, each with its own monthly
+    average rate. Converting the whole period's local total by a single rate
+    would be wrong - the P&L convention is "convert each month's result at
+    that month's average rate, then sum the USD amounts." SUMX over
+    VALUES(CalendarMonth) enforces that.
+
+    The month-end item deliberately does NOT iterate by month - stock value
+    is a point-in-time balance (semi-additive, see measures_inventory.dax),
+    so it converts at the rate on the LAST date in the filter context, not
+    an average across months.
+
+    Usage: [Net Revenue] sliced by "USD (Monthly Avg Rate)" gives Group
+    Controller the Sales-relevant USD figure. [Closing Stock Value] sliced by
+    "USD (Month-End Rate)" gives the balance-sheet-relevant figure. Same
+    calculation group, correct rate convention picked per measure type by
+    which item the report uses - not hardcoded per measure.
+*/

@@ -1,0 +1,42 @@
+/*
+    Core revenue measures — the single source of truth (requirement #1).
+    Live in a dedicated, column-less "_Measures" table.
+    Every one has a Description (shown here as a comment) and a Display Folder
+    set in the model metadata (noted below) so report authors find them without
+    guessing.
+
+    Display Folder: "Revenue"
+*/
+
+Gross Sales :=
+SUMX ( 'Fact Sales', 'Fact Sales'[GrossAmountLocal] )
+-- Description: Gross order value before returns or rebates, in transaction
+-- local currency. Not comparable across currencies without a conversion measure.
+
+Returns :=
+SUMX ( 'Fact Sales', 'Fact Sales'[ReturnsAmountLocal] )
+-- Description: Value of returned goods, local currency, negative convention
+-- (stored as positive in the fact table, subtracted here).
+
+Rebates :=
+SUMX ( 'Fact Sales', 'Fact Sales'[RebatesAmountLocal] )
+-- Description: Distributor rebates/discounts accrued against the order, local currency.
+
+Net Revenue :=
+[Gross Sales] - [Returns] - [Rebates]
+-- Description: THE revenue number. Gross Sales less Returns less Rebates.
+-- This is the only measure any report should use for "revenue" — there is no
+-- second definition anywhere else in the model.
+
+Cost :=
+SUMX ( 'Fact Sales', 'Fact Sales'[CostLocal] )
+-- Description: Cost of goods sold, local currency. Subject to Object-Level
+-- Security — see security/ols_notes.md. Hidden from roles below Director.
+
+Margin :=
+[Net Revenue] - [Cost]
+-- Description: Net Revenue less Cost. Also OLS-protected.
+
+Margin % :=
+DIVIDE ( [Margin], [Net Revenue] )
+-- Description: Margin as a percentage of Net Revenue. OLS-protected (depends on Margin).

@@ -1,0 +1,42 @@
+/*
+    Semi-additive inventory measures (requirement #6).
+    Fact Inventory Snapshot: one row per product x warehouse x day.
+    QuantityOnHand is additive across products/warehouses, but NOT across
+    dates - a quarter's "stock" is the LAST day's balance, not a sum of every
+    day in the quarter.
+
+    Display Folder: "Inventory"
+*/
+
+Closing Stock :=
+CALCULATE (
+    SUM ( 'Fact Inventory Snapshot'[QuantityOnHand] ),
+    LASTDATE ( 'Dim Date'[Date] )
+)
+-- Description: Stock on hand as of the last date in the current filter
+-- context (e.g. "quarter-end stock" when filtered to a quarter). This is
+-- the semi-additive pattern - CLOSINGBALANCE is the named DAX function for
+-- it when working from a single fact/date combination:
+
+Closing Stock (CLOSINGBALANCE) :=
+CLOSINGBALANCELASTDATE (
+    SUM ( 'Fact Inventory Snapshot'[QuantityOnHand] ),
+    'Dim Date'[Date]
+)
+-- Description: Equivalent to Closing Stock above, using the built-in
+-- semi-additive helper. Prefer this form - it's the documented idiom and
+-- reads unambiguously as "don't sum across dates" to anyone editing the model.
+
+Average Daily Usage :=
+VAR DaysInPeriod = COUNTROWS ( VALUES ( 'Dim Date'[Date] ) )
+VAR TotalShipped =
+    CALCULATE ( SUM ( 'Fact Sales'[Quantity] ) )  -- units shipped in period, as proxy for usage
+RETURN
+    DIVIDE ( TotalShipped, DaysInPeriod )
+
+Days of Inventory Cover :=
+DIVIDE ( [Closing Stock (CLOSINGBALANCE)], [Average Daily Usage] )
+-- Description: How many days the current closing stock would last at the
+-- recent average daily usage rate. Standard supply-chain KPI built on top
+-- of the semi-additive closing balance - never a straight SUM of stock
+-- across the period.

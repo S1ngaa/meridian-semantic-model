@@ -1,0 +1,57 @@
+/*
+    Time Intelligence calculation group (requirement #3).
+    Fiscal year runs April-March. Applies to ANY base measure (Net Revenue,
+    Gross Sales, Margin, ...) without duplicating measures per period type.
+
+    Created in Tabular Editor / via TMDL, not plain DAX in a measure — shown
+    here as the calculation items that make up the group.
+
+    Calculation Group: "Time Intelligence"
+    Precedence: 10
+    Column: "Time Calculation" (what shows in the field list / slicer)
+*/
+
+-- Prerequisite: Dim Date must have FiscalYear, FiscalMonthNumber (1=April) columns,
+-- and be marked as the model's Date Table with Date Table [Date] = 'Dim Date'[Date].
+
+-- Calculation Item: "Current" (the base case, no transformation)
+SELECTEDMEASURE ()
+
+-- Calculation Item: "YTD" (fiscal, not calendar)
+CALCULATE (
+    SELECTEDMEASURE (),
+    DATESYTD ( 'Dim Date'[Date], "3/31" )   -- FY ends March 31
+)
+
+-- Calculation Item: "PY" (prior fiscal year, same period)
+CALCULATE (
+    SELECTEDMEASURE (),
+    DATEADD ( 'Dim Date'[Date], -1, YEAR )
+)
+
+-- Calculation Item: "YoY %"
+VAR CurrentValue = SELECTEDMEASURE ()
+VAR PriorValue =
+    CALCULATE ( SELECTEDMEASURE (), DATEADD ( 'Dim Date'[Date], -1, YEAR ) )
+RETURN
+    DIVIDE ( CurrentValue - PriorValue, PriorValue )
+
+-- Calculation Item: "Rolling 12M"
+CALCULATE (
+    SELECTEDMEASURE (),
+    DATESINPERIOD ( 'Dim Date'[Date], MAX ( 'Dim Date'[Date] ), -12, MONTH )
+)
+
+/*
+    Usage in a report: drop [Net Revenue] on a visual, then slice by the
+    "Time Calculation" column from this calculation group. Switching the
+    slicer between Current/YTD/PY/YoY %/Rolling 12M applies to whichever base
+    measure is on the visual — Net Revenue, Gross Sales, Margin, all of them —
+    with zero extra measures authored.
+
+    This is what replaces the 50-duplicated-measures anti-pattern
+    (Net Revenue YTD, Gross Sales YTD, Margin YTD, Net Revenue PY, ... x5
+    measures x 5 time periods = 25+ measures, growing with every new base
+    measure). With a calculation group it's 5 base measures + 5 calculation
+    items, period, and every future base measure inherits the group for free.
+*/

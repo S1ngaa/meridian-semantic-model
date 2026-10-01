@@ -1,0 +1,67 @@
+/*
+    Budget vs. Actuals across mismatched grain (requirement #5).
+    Fact Budget: month x category x region.
+    Fact Sales (Actuals): day x SKU x customer.
+
+    Rule: Budget must not fabricate precision it doesn't have. When a report
+    drills below budget's native grain (e.g. to a single SKU or a single
+    customer), Budget blanks out rather than silently dividing evenly.
+
+    Display Folder: "Budget vs Actual"
+*/
+
+Budget Amount (USD) :=
+CALCULATE (
+    SUM ( 'Fact Budget'[BudgetAmountUSD] ),
+    -- Bridge Actuals' fine-grained filter context (e.g. a specific Product)
+    -- up to Budget's coarser grain (ProductCategory) via TREATAS, so a
+    -- Product-level slicer still finds the right Budget row.
+    TREATAS (
+        VALUES ( 'Dim Product'[ProductCategoryKey] ),
+        'Fact Budget'[ProductCategoryKey]
+    ),
+    TREATAS (
+        VALUES ( 'Dim Geography'[RegionKey] ),
+        'Fact Budget'[RegionKey]
+    )
+)
+
+Actuals Amount (USD) :=
+[Net Revenue]   -- already in local currency; wrap with the currency calc group for USD
+-- Description: Actuals, same grain as Fact Sales, for comparison against Budget Amount.
+
+Budget vs Actual Variance :=
+[Actuals Amount (USD)] - [Budget Amount (USD)]
+
+Budget Amount (Grain-Safe) :=
+-- Returns BLANK when the report is sliced below Budget's native grain
+-- (SKU or Customer), instead of a misleading evenly-divided number.
+VAR IsBelowCategoryGrain =
+    ISINSCOPE ( 'Dim Product'[ProductKey] )          -- SKU-level, finer than Category
+VAR IsBelowRegionGrain =
+    ISINSCOPE ( 'Dim Customer'[CustomerBK] )          -- Customer-level, finer than Region
+RETURN
+    IF (
+        IsBelowCategoryGrain || IsBelowRegionGrain,
+        BLANK (),
+        [Budget Amount (USD)]
+    )
+
+/*
+    If the business later asks for an ALLOCATED budget at SKU level (e.g. to
+    show "implied SKU budget" based on historical sales mix), that is a
+    DIFFERENT, explicitly-named measure:
+
+    Budget Amount (Allocated to SKU) :=
+    VAR CategoryBudget = [Budget Amount (USD)]
+    VAR CategoryActualsTotal =
+        CALCULATE ( [Actuals Amount (USD)], ALLEXCEPT ( 'Dim Product', 'Dim Product'[ProductCategoryKey] ) )
+    VAR SkuActuals = [Actuals Amount (USD)]
+    RETURN
+        CategoryBudget * DIVIDE ( SkuActuals, CategoryActualsTotal )
+
+    This must never be named just "Budget Amount" - an allocated number and a
+    blanked-out number answer different questions, and silently swapping one
+    for the other is exactly the kind of per-report logic drift this model
+    exists to prevent.
+*/

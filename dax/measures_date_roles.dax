@@ -1,0 +1,38 @@
+/*
+    Role-playing date dimension (requirement #2).
+    Dim Date relates to Fact Sales three times; only OrderDateKey is active.
+    These measures activate the other two relationships explicitly.
+
+    Display Folder: "Revenue\By Date Role"
+*/
+
+Net Revenue (Ship Date) :=
+CALCULATE (
+    [Net Revenue],
+    USERELATIONSHIP ( 'Fact Sales'[ShipDateKey], 'Dim Date'[DateKey] )
+)
+-- Description: Net Revenue recognized by ship date. Use for Finance reporting.
+
+Net Revenue (Invoice Date) :=
+CALCULATE (
+    [Net Revenue],
+    USERELATIONSHIP ( 'Fact Sales'[InvoiceDateKey], 'Dim Date'[DateKey] )
+)
+-- Description: Net Revenue recognized by invoice date. Use for AR/billing reporting.
+
+Gross Sales (Ship Date) :=
+CALCULATE (
+    [Gross Sales],
+    USERELATIONSHIP ( 'Fact Sales'[ShipDateKey], 'Dim Date'[DateKey] )
+)
+
+/*
+    Pattern note: don't multiply this across every base measure by hand.
+    Once there are more than 2-3 "by date role" variants, promote this to its
+    own calculation group (Calculation Group: "Date Role" with items
+    "Order Date" / "Ship Date" / "Invoice Date", each wrapping the selected
+    measure in the matching USERELATIONSHIP). Kept as plain measures here
+    because only Order/Ship/Invoice are needed and Finance explicitly asked
+    for ship-date as their default — a dedicated visible measure is clearer
+    for them than a calc-group slicer.
+*/

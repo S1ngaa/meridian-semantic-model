@@ -1,0 +1,58 @@
+/*
+    Ragged parent-child rep hierarchy, flattened with PATH (requirement #8).
+    Dim Employee: EmployeeKey, ManagerKey (self-referencing), varying depth
+    by region (ragged - some reps report directly to a Regional Director,
+    others go through an intermediate Team Lead).
+
+    These are CALCULATED COLUMNS on Dim Employee, computed once at refresh,
+    not measures - hierarchy levels need to exist as columns to build a
+    browsable hierarchy in the field list.
+*/
+
+-- Calculated column: full path from root to this employee, as a delimited string of keys
+EmployeePath =
+PATH ( Dim_Employee[EmployeeKey], Dim_Employee[ManagerKey] )
+
+-- Calculated column: how deep this employee sits (used to detect raggedness)
+EmployeePathLength =
+PATHLENGTH ( Dim_Employee[EmployeePath] )
+
+-- Calculated columns: fixed-depth levels for a browsable hierarchy.
+-- PATHITEM returns BLANK beyond an employee's actual depth, which is exactly
+-- the "ragged" behavior wanted - a Level 3 rep under a 2-level chain just
+-- shows blank at Level 4+, Power BI's hierarchy visual naturally collapses that.
+Level 1 (Top) =
+PATHITEM ( Dim_Employee[EmployeePath], 1, TEXT )
+
+Level 2 =
+PATHITEM ( Dim_Employee[EmployeePath], 2, TEXT )
+
+Level 3 =
+PATHITEM ( Dim_Employee[EmployeePath], 3, TEXT )
+
+Level 4 =
+PATHITEM ( Dim_Employee[EmployeePath], 4, TEXT )
+
+-- Measure: roll up a rep's own Net Revenue plus everyone below them in the chain
+Team Net Revenue :=
+VAR CurrentManagerKey = SELECTEDVALUE ( Dim_Employee[EmployeeKey] )
+VAR TeamMembers =
+    FILTER (
+        ALL ( Dim_Employee ),
+        PATHCONTAINS ( Dim_Employee[EmployeePath], CurrentManagerKey )
+    )
+RETURN
+    CALCULATE ( [Net Revenue], TeamMembers )
+-- Description: Net Revenue for this employee plus their entire downline,
+-- regardless of how many levels deep the chain goes - this is what makes
+-- the hierarchy "ragged-safe": a Team Lead with 2 reports and a Director
+-- with 40 reports across 3 levels both get a correct roll-up from the same
+-- measure, no per-level special-casing.
+
+/*
+    Build the user-facing hierarchy in the model as:
+    Hierarchy "Management Chain": Level 1 (Top) -> Level 2 -> Level 3 -> Level 4
+    Drop [Team Net Revenue] on a matrix with that hierarchy on rows - it
+    rolls up correctly at every level, including levels that don't exist for
+    shallower branches.
+*/
