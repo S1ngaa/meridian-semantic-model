@@ -42,10 +42,15 @@ reusable rather than reinvented per report.
 2. [model/relationships.md](model/relationships.md) explains which relationships are active
    vs. inactive and why.
 3. The `dax/` files are meant to be pasted into Tabular Editor or a Power BI semantic model
-   against tables matching the schema in `model/tables.md`. They're real DAX, not pseudocode,
-   but column/table names will need to match your actual source once real data is connected.
+   against tables matching the schema in `model/tables.md`. They're real DAX, not pseudocode.
 4. `security/` and `refresh/` are operational design docs, not code — RLS roles and
    partition/refresh policy are configured in the service, not written as DAX.
+5. **`data/` has a working synthetic dataset** (6,000 sales rows, 2 fiscal years) generated
+   by `data/generate_data.py`, engineered to exercise every pattern above — a distributor
+   that changes territory mid-year, inventory that sawtooths, a ragged management chain,
+   budget at a coarser grain than actuals, diverging FX rates. Follow
+   [data/SETUP.md](data/SETUP.md) to load it into Power BI Desktop and build the actual
+   model against real (if synthetic) data, rather than just reading the DAX.
 
 ## Design principles this model follows
 

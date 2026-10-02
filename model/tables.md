@@ -75,7 +75,10 @@ CustomerName
 TerritoryKey         -> Dim Territory   -- the field that changes (North -> South)
 AccountManagerKey    -> Dim Employee
 EffectiveDate
-ExpiryDate            -- 9999-12-31 for the current row
+ExpiryDate            -- far-future sentinel for the current row (conventionally
+                      -- 9999-12-31; the practice dataset in data/ uses 2099-12-31
+                      -- since pandas' datetime64[ns] can't represent year 9999 —
+                      -- Power BI/DAX itself has no such limit)
 IsCurrent             boolean
 ```
 Fact Sales always joins on `CustomerSK`, resolved at load time to whichever surrogate

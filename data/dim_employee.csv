@@ -1,0 +1,9 @@
+EmployeeKey,ManagerKey,EmployeeName,Title
+1,,Dana Director,Director
+2,1.0,Raj RegionalMgr (Deep Branch),Regional Manager
+3,1.0,Sam RegionalMgr (Shallow Branch),Regional Manager
+4,2.0,Tina TeamLead,Team Lead
+5,4.0,Rep A,Sales Rep
+6,4.0,Rep B,Sales Rep
+7,3.0,Rep C (reports direct to Regional Mgr),Sales Rep
+8,3.0,Rep D (reports direct to Regional Mgr),Sales Rep

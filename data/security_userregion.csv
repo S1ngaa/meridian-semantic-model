@@ -1,0 +1,4 @@
+UserPrincipalName,RegionKey,AccountKey,Role
+regionalmanager.north@meridian.com,1.0,,RegionalManager
+keyaccount.manager@meridian.com,,DIST-003,KeyAccountManager
+director@meridian.com,,,Director

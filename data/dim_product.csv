@@ -1,0 +1,41 @@
+ProductKey,ProductCategoryKey,ProductCategory,ProductName,SKU
+1,1,Refrigerators,Refrigerator Model 1,REF-001
+2,1,Refrigerators,Refrigerator Model 2,REF-002
+3,1,Refrigerators,Refrigerator Model 3,REF-003
+4,1,Refrigerators,Refrigerator Model 4,REF-004
+5,1,Refrigerators,Refrigerator Model 5,REF-005
+6,1,Refrigerators,Refrigerator Model 6,REF-006
+7,1,Refrigerators,Refrigerator Model 7,REF-007
+8,1,Refrigerators,Refrigerator Model 8,REF-008
+9,2,Ovens,Oven Model 1,OVE-001
+10,2,Ovens,Oven Model 2,OVE-002
+11,2,Ovens,Oven Model 3,OVE-003
+12,2,Ovens,Oven Model 4,OVE-004
+13,2,Ovens,Oven Model 5,OVE-005
+14,2,Ovens,Oven Model 6,OVE-006
+15,2,Ovens,Oven Model 7,OVE-007
+16,2,Ovens,Oven Model 8,OVE-008
+17,3,Dishwashers,Dishwasher Model 1,DIS-001
+18,3,Dishwashers,Dishwasher Model 2,DIS-002
+19,3,Dishwashers,Dishwasher Model 3,DIS-003
+20,3,Dishwashers,Dishwasher Model 4,DIS-004
+21,3,Dishwashers,Dishwasher Model 5,DIS-005
+22,3,Dishwashers,Dishwasher Model 6,DIS-006
+23,3,Dishwashers,Dishwasher Model 7,DIS-007
+24,3,Dishwashers,Dishwasher Model 8,DIS-008
+25,4,Washing Machines,Washing Machine Model 1,WAS-001
+26,4,Washing Machines,Washing Machine Model 2,WAS-002
+27,4,Washing Machines,Washing Machine Model 3,WAS-003
+28,4,Washing Machines,Washing Machine Model 4,WAS-004
+29,4,Washing Machines,Washing Machine Model 5,WAS-005
+30,4,Washing Machines,Washing Machine Model 6,WAS-006
+31,4,Washing Machines,Washing Machine Model 7,WAS-007
+32,4,Washing Machines,Washing Machine Model 8,WAS-008
+33,5,Small Appliances,Small Appliance Model 1,SMA-001
+34,5,Small Appliances,Small Appliance Model 2,SMA-002
+35,5,Small Appliances,Small Appliance Model 3,SMA-003
+36,5,Small Appliances,Small Appliance Model 4,SMA-004
+37,5,Small Appliances,Small Appliance Model 5,SMA-005
+38,5,Small Appliances,Small Appliance Model 6,SMA-006
+39,5,Small Appliances,Small Appliance Model 7,SMA-007
+40,5,Small Appliances,Small Appliance Model 8,SMA-008
